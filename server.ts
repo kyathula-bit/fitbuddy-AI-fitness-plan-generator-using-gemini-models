@@ -158,7 +158,8 @@ USER PROFILE:
 - Fitness Goal: ${profile.fitnessGoal}
 - Activity Level: ${profile.activityLevel}
 - Workout Experience: ${profile.workoutExperience}
-- Workout Intensity: ${profile.workoutIntensity || 'moderate'} (low: RPE 5-6 sustainable, moderate: RPE 7-8 progressive sweet spot, high: RPE 8.5-9 heavy power, extreme: RPE 9.5-10 technical failure)
+- Workout Intensity: ${profile.workoutIntensity === 'moderate' ? 'medium' : profile.workoutIntensity === 'extreme' ? 'high' : profile.workoutIntensity || 'medium'} (Options: low: RPE 5–6 gentle & sustainable, medium: RPE 7–8 balanced progressive sweet spot, high: RPE 8.5–9+ heavy power & demanding)
+
 - Available Workout Days: ${profile.availableWorkoutDays} days per week
 - Preferred Specific Days: ${Array.isArray(profile.preferredDays) && profile.preferredDays.length > 0 ? profile.preferredDays.join(', ') : 'Flexible'}
 - Preferred Workout Type: ${profile.preferredWorkoutType}
@@ -205,8 +206,14 @@ INSTRUCTIONS:
    - For each exercise: Exact sets, target rep range or time, rest interval (in seconds), tempo (e.g., "3-0-1-0"), clear actionable form cues, safety tips, equipment required, and a practical alternative/substitution.
    - Cooldown & Mobility (3-4 targeted stretches with hold times).
 8. Progressive overload strategy: provide concrete steps for weeks 1-4.
-9. Tailor nutrition guidance to their dietary preference (${profile.dietaryPreference}) and calorie goal (${baselines.recommendedDailyCalories} kcal). Provide 3-4 realistic sample meals with protein counts.
+9. MANDATORY NUTRITION ARCHITECTURE (Tailor strictly to their dietary preference "${profile.dietaryPreference}" and calorie goal ${baselines.recommendedDailyCalories} kcal):
+   You MUST include clear, balanced, and delicious meal & snack prescriptions:
+   - BREAKFAST: Energizing breakfast recipe with title, description, calories, protein, carbs, fats, prep time (mins), ingredients, and key benefits.
+   - LUNCH: Sustained afternoon performance lunch with title, description, calories, protein, carbs, fats, prep time (mins), ingredients, and key benefits.
+   - DINNER: Muscle repair & restorative dinner with title, description, calories, protein, carbs, fats, prep time (mins), ingredients, and key benefits.
+   - HEALTHY SNACK IDEAS: Provide at least 3 to 4 quick, practical, nutrient-dense healthy snacks (e.g., high-protein, sustained energy, savory crunch, sweet craving) with estimated calories, protein, prep time, ingredients, category, and why it works. Also include at least 1 healthy snack in "sampleMeals" with mealType "Healthy Snack".
 10. Return valid JSON strictly matching the provided schema.
+
 `;
 
 
@@ -366,8 +373,38 @@ INSTRUCTIONS:
                         description: { type: Type.STRING },
                         estimatedCalories: { type: Type.INTEGER },
                         proteinGrams: { type: Type.INTEGER },
+                        carbsGrams: { type: Type.INTEGER },
+                        fatsGrams: { type: Type.INTEGER },
+                        prepTimeMinutes: { type: Type.INTEGER },
+                        ingredients: {
+                          type: Type.ARRAY,
+                          items: { type: Type.STRING },
+                        },
+                        keyBenefits: { type: Type.STRING },
                       },
                       required: ['mealType', 'title', 'description', 'estimatedCalories', 'proteinGrams'],
+                    },
+                  },
+                  healthySnackIdeas: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        title: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        calories: { type: Type.INTEGER },
+                        proteinGrams: { type: Type.INTEGER },
+                        carbsGrams: { type: Type.INTEGER },
+                        fatsGrams: { type: Type.INTEGER },
+                        category: { type: Type.STRING },
+                        prepTimeMinutes: { type: Type.INTEGER },
+                        ingredients: {
+                          type: Type.ARRAY,
+                          items: { type: Type.STRING },
+                        },
+                        whyItWorks: { type: Type.STRING },
+                      },
+                      required: ['title', 'description', 'calories', 'proteinGrams', 'whyItWorks'],
                     },
                   },
                   tips: {
@@ -377,6 +414,7 @@ INSTRUCTIONS:
                 },
                 required: ['dailyWaterLiters', 'preWorkoutFuel', 'postWorkoutFuel', 'sampleMeals', 'tips'],
               },
+
               recoveryProtocol: {
                 type: Type.OBJECT,
                 properties: {
@@ -637,23 +675,32 @@ INSTRUCTIONS:
       }
 
       const athletePrefix = profile.name ? `${profile.name}'s ` : '';
+      const resolvedIntensity =
+        profile.workoutIntensity === 'moderate'
+          ? 'medium'
+          : profile.workoutIntensity === 'extreme'
+          ? 'high'
+          : profile.workoutIntensity || 'medium';
+
       const intensityLabels: Record<string, string> = {
         low: 'Low Intensity • RPE 5–6 (Sustainable & Form-focused)',
-        moderate: 'Moderate Intensity • RPE 7–8 (Progressive Overload)',
-        high: 'High Intensity • RPE 8.5–9 (Heavy Drive & Power)',
-        extreme: 'Extreme Intensity • RPE 9.5–10 (Peak Athletic Threshold)',
+        medium: 'Medium Intensity • RPE 7–8 (Progressive Overload & Balanced Drive)',
+        moderate: 'Medium Intensity • RPE 7–8 (Progressive Overload & Balanced Drive)',
+        high: 'High Intensity • RPE 8.5–9+ (Heavy Drive & High Output)',
+        extreme: 'High Intensity • RPE 8.5–9+ (Heavy Drive & High Output)',
       };
 
       parsedPlan = {
         planTitle: `${athletePrefix}${goalTitles[profile.fitnessGoal] || 'Customized Kinetic Fitness Plan'}`,
-        tagline: `Evidence-based ${daysCount}-Day ${equip} Routine (${profile.workoutIntensity || 'moderate'} intensity) Tailored by FitBuddy AI`,
-        executiveSummary: `Constructed specifically for ${profile.name ? profile.name + ', a ' : 'a '}${profile.age}-year-old athlete with ${profile.workoutExperience} training experience focusing on ${profile.fitnessGoal.replace('_', ' ')} at ${profile.workoutIntensity || 'moderate'} intensity. Prescribes evidence-based progressive overload, volume calibration, and structured nutrition to accelerate results safely.`,
+        tagline: `Evidence-based ${daysCount}-Day ${equip} Routine (${resolvedIntensity} intensity) Tailored by FitBuddy AI`,
+        executiveSummary: `Constructed specifically for ${profile.name ? profile.name + ', a ' : 'a '}${profile.age}-year-old athlete with ${profile.workoutExperience} training experience focusing on ${profile.fitnessGoal.replace('_', ' ')} at ${resolvedIntensity} intensity. Prescribes evidence-based progressive overload, volume calibration, and structured nutrition to accelerate results safely.`,
         weeklyOverview: {
           splitName: `${daysCount}-Day ${profile.preferredWorkoutType.replace('_', ' ').toUpperCase()} Split`,
           daysCount: daysCount,
           frequencyNote: `${daysCount} training days with dedicated recovery intervals.`,
-          intensityLevel: intensityLabels[profile.workoutIntensity || 'moderate'] || 'RPE 7.5 – 8.5 (1 to 2 reps in reserve)',
+          intensityLevel: intensityLabels[resolvedIntensity] || 'RPE 7–8 (Balanced progressive overload)',
         },
+
 
         schedule: scheduleDays,
         progressionPlan: {
@@ -669,26 +716,104 @@ INSTRUCTIONS:
           sampleMeals: [
             {
               mealType: 'Breakfast',
-              title: 'Protein Oatmeal with Berries & Nuts',
-              description: 'Rolled oats cooked with protein powder, chia seeds, and fresh berries.',
+              title: 'Energizing Power Oatmeal & Greek Yogurt',
+              description: 'Rolled oats cooked with cinnamon, topped with high-protein Greek yogurt, chia seeds, and fresh berries.',
               estimatedCalories: 520,
               proteinGrams: 38,
+              carbsGrams: 64,
+              fatsGrams: 12,
+              prepTimeMinutes: 10,
+              ingredients: ['Rolled Oats', 'Greek Yogurt', 'Fresh Blueberries', 'Chia Seeds', 'Ceylon Cinnamon', 'Honey'],
+              keyBenefits: 'Slow-burning complex carbohydrates provide sustained morning glucose and high amino acid availability.',
             },
             {
               mealType: 'Lunch',
-              title: 'Grilled Protein Rice & Veggie Bowl',
-              description: 'Lean chicken, tofu, or fish with jasmine rice, avocado, and steamed broccoli.',
+              title: 'Mediterranean Quinoa & Protein Harvest Bowl',
+              description: 'Grilled protein of choice (chicken, salmon, or crispy tofu) over seasoned quinoa, diced cucumbers, tomatoes, and kalamata olives with lemon-tahini dressing.',
               estimatedCalories: 680,
-              proteinGrams: 46,
+              proteinGrams: 48,
+              carbsGrams: 62,
+              fatsGrams: 20,
+              prepTimeMinutes: 15,
+              ingredients: ['Quinoa', 'Lean Protein (Chicken/Tofu)', 'English Cucumber', 'Cherry Tomatoes', 'Olive Oil', 'Tahini'],
+              keyBenefits: 'Balanced micronutrients and polyphenols promote anti-inflammatory recovery and combat afternoon fatigue.',
             },
             {
               mealType: 'Dinner',
-              title: 'Roasted Salmon or Tempeh with Sweet Potato',
-              description: 'Herb-seasoned protein with roasted sweet potatoes and asparagus.',
-              estimatedCalories: 620,
-              proteinGrams: 42,
+              title: 'Herb-Crusted Salmon or Tempeh with Sweet Potato Mash',
+              description: 'Pan-seared omega-3 rich salmon or organic tempeh served alongside baked sweet potato with a dash of grass-fed butter and roasted broccoli florets.',
+              estimatedCalories: 640,
+              proteinGrams: 44,
+              carbsGrams: 58,
+              fatsGrams: 22,
+              prepTimeMinutes: 20,
+              ingredients: ['Wild Salmon or Tempeh', 'Sweet Potato', 'Broccoli Florets', 'Garlic Herbs', 'Extra Virgin Olive Oil'],
+              keyBenefits: 'Essential fatty acids and potassium replenish muscle glycogen stores and optimize cellular repair during sleep.',
+            },
+            {
+              mealType: 'Healthy Snack',
+              title: 'High-Protein Berry Crunch Parfait',
+              description: 'Non-fat Greek yogurt layered with a handful of raw pumpkin seeds, crushed walnuts, and a splash of pure vanilla.',
+              estimatedCalories: 260,
+              proteinGrams: 24,
+              carbsGrams: 18,
+              fatsGrams: 9,
+              prepTimeMinutes: 5,
+              ingredients: ['Greek Yogurt', 'Pumpkin Seeds', 'Walnuts', 'Pure Vanilla'],
+              keyBenefits: 'Quick 24g protein boost keeps muscle protein synthesis elevated without spiking insulin.',
             },
           ],
+          healthySnackIdeas: [
+            {
+              title: 'Crisp Apple Slices with Creamy Almond Butter & Hemp Hearts',
+              description: 'Crisp Honeycrisp apple slices paired with 2 tablespoons of natural almond butter and a sprinkle of raw hemp hearts.',
+              calories: 230,
+              proteinGrams: 8,
+              carbsGrams: 28,
+              fatsGrams: 14,
+              category: 'Sweet & Energy Boost',
+              prepTimeMinutes: 3,
+              ingredients: ['Honeycrisp Apple', 'Natural Almond Butter', 'Raw Hemp Hearts'],
+              whyItWorks: 'Soluble pectin fiber blunts glycemic spikes while monounsaturated fats provide lasting mental clarity.',
+            },
+            {
+              title: 'Roasted Sea Salt Edamame & Roasted Pumpkin Seeds',
+              description: 'Steamed or dry-roasted young edamame tossed with toasted pepitas, sea salt, and a dash of smoked paprika.',
+              calories: 190,
+              proteinGrams: 16,
+              carbsGrams: 12,
+              fatsGrams: 9,
+              category: 'Savory & High Protein',
+              prepTimeMinutes: 5,
+              ingredients: ['Shelled Edamame', 'Pepitas (Pumpkin Seeds)', 'Smoked Paprika', 'Pink Sea Salt'],
+              whyItWorks: 'Plant-based complete protein packed with zinc and magnesium to support muscular recovery and reduce cramping.',
+            },
+            {
+              title: 'Hard-Boiled Eggs with Everything Bagel Guacamole',
+              description: 'Two pastured hard-boiled eggs sliced in half, topped with fresh mashed avocado and everything bagel seasoning.',
+              calories: 220,
+              proteinGrams: 14,
+              carbsGrams: 4,
+              fatsGrams: 16,
+              category: 'Quick & Savory',
+              prepTimeMinutes: 2,
+              ingredients: ['Pasture-Raised Eggs', 'Fresh Avocado / Guacamole', 'Everything Bagel Seasoning'],
+              whyItWorks: 'Choline from egg yolks supports neurological neuromuscular efficiency, while healthy fats optimize hormonal balance.',
+            },
+            {
+              title: 'No-Bake Cacao & Chia Protein Energy Bites',
+              description: 'Wholesome roll of oats, chocolate whey or plant protein, raw chia seeds, and a dab of raw honey.',
+              calories: 180,
+              proteinGrams: 12,
+              carbsGrams: 20,
+              fatsGrams: 6,
+              category: 'Pre-Workout / Grab & Go',
+              prepTimeMinutes: 5,
+              ingredients: ['Rolled Oats', 'Chocolate Protein Powder', 'Chia Seeds', 'Almond Milk', 'Raw Honey'],
+              whyItWorks: 'Immediate glucose mobilization for working muscles paired with medium-chain fatty acids for training endurance.',
+            },
+          ],
+
           tips: [
             'Target 1.6 to 2.2 grams of protein per kilogram of bodyweight.',
             'Maintain consistent hydration throughout the day, not just during training.',

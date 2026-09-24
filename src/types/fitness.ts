@@ -54,7 +54,8 @@ export type DietaryPreference =
   | 'keto'
   | 'flexible';
 
-export type WorkoutIntensity = 'low' | 'moderate' | 'high' | 'extreme';
+export type WorkoutIntensity = 'low' | 'medium' | 'high' | 'moderate' | 'extreme';
+
 
 export interface UserFitnessProfile {
   name?: string;
@@ -124,7 +125,26 @@ export interface SampleMeal {
   description: string;
   estimatedCalories: number;
   proteinGrams: number;
+  carbsGrams?: number;
+  fatsGrams?: number;
+  prepTimeMinutes?: number;
+  ingredients?: string[];
+  keyBenefits?: string;
 }
+
+export interface HealthySnackIdea {
+  title: string;
+  description: string;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams?: number;
+  fatsGrams?: number;
+  category?: string;
+  prepTimeMinutes?: number;
+  ingredients?: string[];
+  whyItWorks?: string;
+}
+
 
 export interface GeneratedFitnessPlan {
   id: string;
@@ -165,8 +185,10 @@ export interface GeneratedFitnessPlan {
     preWorkoutFuel: string;
     postWorkoutFuel: string;
     sampleMeals: SampleMeal[];
+    healthySnackIdeas?: HealthySnackIdea[];
     tips: string[];
   };
+
   recoveryProtocol: {
     sleepTargetHours: string;
     activeRecoveryNotes: string;

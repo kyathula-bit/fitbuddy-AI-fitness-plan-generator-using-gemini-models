@@ -20,6 +20,9 @@ import { AiCoachDrawer } from './components/AiCoachDrawer';
 import { SavedPlansModal } from './components/SavedPlansModal';
 import { PresetsModal } from './components/PresetsModal';
 import { FeedbackRegenerateModal } from './components/FeedbackRegenerateModal';
+import { AdminDashboard } from './components/AdminDashboard';
+import { fetchAdminPlanByIdApi } from './services/api';
+
 
 
 import {
@@ -52,8 +55,10 @@ export default function App() {
   const [isPresetsModalOpen, setIsPresetsModalOpen] = useState(false);
   const [isCoachDrawerOpen, setIsCoachDrawerOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [selectedExerciseForGuide, setSelectedExerciseForGuide] = useState<ExerciseItem | null>(null);
   const [coachExerciseContext, setCoachExerciseContext] = useState<ExerciseItem | null>(null);
+
 
 
   // Initialize from LocalStorage
@@ -209,6 +214,28 @@ export default function App() {
     setIsCoachDrawerOpen(true);
   };
 
+  const handleLoadPlanFromAdmin = async (planId: string) => {
+    try {
+      const plan = await fetchAdminPlanByIdApi(planId);
+      if (plan) {
+        setCurrentPlan(plan);
+        if (plan.userProfile) {
+          setProfile(plan.userProfile);
+        }
+        const exists = savedPlans.some((p) => p.id === plan.id);
+        if (!exists) {
+          persistSavedPlans([plan, ...savedPlans]);
+        }
+        setActiveView('plan');
+        setPlanSubTab('schedule');
+        showToast(`Loaded "${plan.planTitle}" from SQLite database!`);
+      }
+    } catch (err: any) {
+      console.error('Failed to load plan from SQLite:', err);
+      setErrorMessage(err.message || 'Failed to load plan from SQLite.');
+    }
+  };
+
   const isCurrentPlanSaved = !!(currentPlan && savedPlans.some((p) => p.id === currentPlan.id));
 
   return (
@@ -225,7 +252,9 @@ export default function App() {
         onViewActivePlan={() => setActiveView('plan')}
         activeView={activeView}
         onViewChange={setActiveView}
+        onOpenAdmin={() => setIsAdminDashboardOpen(true)}
       />
+
 
       {/* Floating Success Toast */}
       {successToast && (
@@ -409,6 +438,17 @@ export default function App() {
         onClose={() => setIsPresetsModalOpen(false)}
         onSelectPreset={handleSelectPreset}
       />
+
+      {isAdminDashboardOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950">
+          <AdminDashboard
+            onClose={() => setIsAdminDashboardOpen(false)}
+            onSelectPlan={handleLoadPlanFromAdmin}
+            currentPlanId={currentPlan?.id}
+          />
+        </div>
+      )}
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dumbbell, Sparkles, Bookmark, RotateCcw, Zap, SlidersHorizontal } from 'lucide-react';
+import { Dumbbell, Sparkles, Bookmark, RotateCcw, Zap, SlidersHorizontal, Shield } from 'lucide-react';
 
 interface NavbarProps {
   onNewPlan: () => void;
@@ -12,6 +12,7 @@ interface NavbarProps {
   onViewActivePlan: () => void;
   activeView: 'create' | 'plan' | 'workout';
   onViewChange: (view: 'create' | 'plan' | 'workout') => void;
+  onOpenAdmin: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -24,7 +25,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   hasActivePlan,
   activeView,
   onViewChange,
+  onOpenAdmin,
 }) => {
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
@@ -130,7 +133,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
+          {/* Admin Dashboard */}
+          <button
+            onClick={onOpenAdmin}
+            className="px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-950/40 hover:bg-indigo-900/60 text-xs font-semibold text-indigo-300 hover:text-white transition-all flex items-center gap-1.5 shadow-sm"
+            title="Open Admin Dashboard (SQLite & Users)"
+          >
+            <Shield className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden sm:inline">Admin DB</span>
+          </button>
+
           {/* New Plan Button */}
+
           <button
             onClick={onNewPlan}
             className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-semibold text-xs tracking-wide shadow-md shadow-emerald-500/20 flex items-center gap-1.5 transition-all transform active:scale-95"

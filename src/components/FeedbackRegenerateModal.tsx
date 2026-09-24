@@ -45,12 +45,18 @@ export const FeedbackRegenerateModal: React.FC<FeedbackRegenerateModalProps> = (
 
   const [feedbackText, setFeedbackText] = useState('');
   const [showAdvancedTweaks, setShowAdvancedTweaks] = useState(false);
-  const [adjustedIntensity, setAdjustedIntensity] = useState<WorkoutIntensity>(
-    currentPlan.userProfile.workoutIntensity || 'moderate'
-  );
+  const normalizedIntensity: WorkoutIntensity =
+    currentPlan.userProfile.workoutIntensity === 'moderate'
+      ? 'medium'
+      : currentPlan.userProfile.workoutIntensity === 'extreme'
+      ? 'high'
+      : currentPlan.userProfile.workoutIntensity || 'medium';
+
+  const [adjustedIntensity, setAdjustedIntensity] = useState<WorkoutIntensity>(normalizedIntensity);
   const [adjustedDuration, setAdjustedDuration] = useState<number>(
     currentPlan.userProfile.workoutDurationMinutes || 45
   );
+
   const [adjustedDays, setAdjustedDays] = useState<number>(
     currentPlan.userProfile.availableWorkoutDays || 4
   );
@@ -140,7 +146,11 @@ export const FeedbackRegenerateModal: React.FC<FeedbackRegenerateModalProps> = (
               {currentPlan.userProfile.workoutDurationMinutes || 45}m
             </span>
             <span className="px-2 py-0.5 rounded bg-slate-800 text-emerald-400 capitalize font-mono text-[11px]">
-              {currentPlan.userProfile.workoutIntensity || 'moderate'}
+              {currentPlan.userProfile.workoutIntensity === 'moderate'
+                ? 'medium'
+                : currentPlan.userProfile.workoutIntensity === 'extreme'
+                ? 'high'
+                : currentPlan.userProfile.workoutIntensity || 'medium'}
             </span>
           </div>
         </div>
@@ -217,17 +227,23 @@ export const FeedbackRegenerateModal: React.FC<FeedbackRegenerateModalProps> = (
                     Target Intensity
                   </label>
                   <select
-                    value={adjustedIntensity}
+                    value={
+                      adjustedIntensity === 'moderate'
+                        ? 'medium'
+                        : adjustedIntensity === 'extreme'
+                        ? 'high'
+                        : adjustedIntensity || 'medium'
+                    }
                     onChange={(e) => setAdjustedIntensity(e.target.value as WorkoutIntensity)}
                     disabled={isLoading}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-emerald-500"
                   >
                     <option value="low">Low (RPE 5–6, Gentle & Sustainable)</option>
-                    <option value="moderate">Moderate (RPE 7–8, Balanced Progress)</option>
-                    <option value="high">High (RPE 8.5–9, Heavy Drive)</option>
-                    <option value="extreme">Extreme (RPE 9.5–10, Peak Athletic)</option>
+                    <option value="medium">Medium (RPE 7–8, Balanced & Progressive)</option>
+                    <option value="high">High (RPE 8.5–9+, Heavy Drive & Power)</option>
                   </select>
                 </div>
+
 
                 {/* Session Duration */}
                 <div>

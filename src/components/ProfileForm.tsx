@@ -574,7 +574,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   Workout Intensity Target
                 </span>
                 <span className="text-[11px] font-mono text-emerald-400 font-bold uppercase">
-                  {profile.workoutIntensity || 'moderate'}
+                  {profile.workoutIntensity === 'moderate'
+                    ? 'medium'
+                    : profile.workoutIntensity === 'extreme'
+                    ? 'high'
+                    : profile.workoutIntensity || 'medium'}
                 </span>
               </label>
               <div className="space-y-2">
@@ -584,57 +588,64 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     label: 'Low Intensity (RPE 5–6)',
                     badge: 'Gentle & Sustainable',
                     badgeColor: 'text-teal-400 bg-teal-950/50 border-teal-800/50',
-                    desc: 'Focus on form, movement quality, and safe habit formation with 3-4 reps in reserve.',
+                    desc: 'Focus on form, movement quality, and safe habit formation with 3–4 reps in reserve.',
                   },
                   {
-                    id: 'moderate' as WorkoutIntensity,
-                    label: 'Moderate Intensity (RPE 7–8)',
-                    badge: 'Balanced & Steady',
+                    id: 'medium' as WorkoutIntensity,
+                    label: 'Medium Intensity (RPE 7–8)',
+                    badge: 'Balanced & Progressive',
                     badgeColor: 'text-emerald-400 bg-emerald-950/50 border-emerald-800/50',
-                    desc: 'Optimal progressive overload sweet-spot with 2 reps in reserve for consistent gains.',
+                    desc: 'Optimal progressive overload sweet-spot with 2 reps in reserve for consistent gains and steady recovery.',
                   },
                   {
                     id: 'high' as WorkoutIntensity,
-                    label: 'High Intensity (RPE 8.5–9)',
+                    label: 'High Intensity (RPE 8.5–9+)',
                     badge: 'Demanding & High Drive',
                     badgeColor: 'text-amber-400 bg-amber-950/50 border-amber-800/50',
-                    desc: 'Heavy neuromuscular stimulus with 1 rep in reserve, maximizing strength and hypertrophy.',
+                    desc: 'Heavy neuromuscular stimulus with 1 rep in reserve, maximizing strength, hypertrophy, and power.',
                   },
-                  {
-                    id: 'extreme' as WorkoutIntensity,
-                    label: 'Extreme Intensity (RPE 9.5–10)',
-                    badge: 'Peak Athletic Output',
-                    badgeColor: 'text-rose-400 bg-rose-950/50 border-rose-800/50',
-                    desc: 'High lactate tolerance, training to technical failure and explosive power thresholds.',
-                  },
-                ].map((item) => (
-                  <label
-                    key={item.id}
-                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                      (profile.workoutIntensity || 'moderate') === item.id
-                        ? 'bg-emerald-950/30 border-emerald-500/80 text-white'
-                        : 'bg-slate-950/60 border-slate-800/80 hover:bg-slate-800/40 text-slate-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="workoutIntensity"
-                      checked={(profile.workoutIntensity || 'moderate') === item.id}
-                      onChange={() =>
-                        setProfile({ ...profile, workoutIntensity: item.id })
-                      }
-                      className="mt-1 text-emerald-500 focus:ring-emerald-500"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">{item.label}</span>
+                ].map((item) => {
+                  const currentIntensity =
+                    profile.workoutIntensity === 'moderate'
+                      ? 'medium'
+                      : profile.workoutIntensity === 'extreme'
+                      ? 'high'
+                      : profile.workoutIntensity || 'medium';
+                  const isSelected = currentIntensity === item.id;
+
+                  return (
+                    <label
+                      key={item.id}
+                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-emerald-950/30 border-emerald-500/80 text-white'
+                          : 'bg-slate-950/60 border-slate-800/80 hover:bg-slate-800/40 text-slate-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="workoutIntensity"
+                        checked={isSelected}
+                        onChange={() =>
+                          setProfile({ ...profile, workoutIntensity: item.id })
+                        }
+                        className="mt-1 text-emerald-500 focus:ring-emerald-500"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-white">{item.label}</span>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${item.badgeColor}`}>
+                            {item.badge}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-0.5 leading-snug">{item.desc}</div>
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5 leading-snug">{item.desc}</div>
-                    </div>
-                  </label>
-                ))}
+                    </label>
+                  );
+                })}
               </div>
             </div>
+
           </div>
         </div>
 

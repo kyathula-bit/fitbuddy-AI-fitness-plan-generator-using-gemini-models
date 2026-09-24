@@ -122,8 +122,9 @@ export const PRESET_TEMPLATES: PresetTemplate[] = [
       availableEquipment: 'home_gym',
       workoutDurationMinutes: 40,
       workoutExperience: 'intermediate',
-      workoutIntensity: 'moderate',
+      workoutIntensity: 'medium',
       dietaryPreference: 'flexible',
+
     },
   },
 

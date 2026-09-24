@@ -86,8 +86,16 @@ export const PlanOverviewHeader: React.FC<PlanOverviewHeaderProps> = ({
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold">
               <Gauge className="w-3.5 h-3.5 text-emerald-400" />
-              Intensity: <span className="capitalize text-white font-bold">{plan.userProfile.workoutIntensity || 'moderate'}</span>
+              Intensity:{' '}
+              <span className="capitalize text-white font-bold">
+                {plan.userProfile.workoutIntensity === 'moderate'
+                  ? 'medium'
+                  : plan.userProfile.workoutIntensity === 'extreme'
+                  ? 'high'
+                  : plan.userProfile.workoutIntensity || 'medium'}
+              </span>
             </span>
+
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 text-xs font-semibold capitalize">
               Goal: {plan.userProfile.fitnessGoal ? plan.userProfile.fitnessGoal.replace('_', ' ') : 'General Fitness'}
             </span>
